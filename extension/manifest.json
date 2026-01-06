@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "AI Sales OS Extension",
+  "version": "1.0",
+  "description": "Outbound Sales Support with AI Strategy Carte",
+  "permissions": ["sidePanel", "activeTab", "scripting", "storage"],
+  "host_permissions": ["http://localhost:3000/*", "http://127.0.0.1:3000/*", "<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "action": {
+    "default_title": "Open AI Sales OS"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"]
+    }
+  ]
+}

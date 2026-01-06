@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Strategic Report - Detailed View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --primary-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #111827;
+            --text-sub: #6B7280;
+            --accent: #2563EB;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            background: var(--primary-bg);
+            color: var(--text-main);
+            display: flex; /* Sidebar layout */
+        }
+
+        /* --- Sidebar (Web Only) --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1F2937;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 12px;
+            color: #9CA3AF;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: #374151;
+            color: white;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            width: 100%;
+            max-width: 900px; /* Readability width */
+        }
+
+        .header-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-box {
+            text-align: center;
+            background: #EFF6FF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: var(--accent);
+        }
+
+        h1 { margin: 0; font-size: 24px; }
+        h2 { 
+            font-size: 18px; 
+            margin: 40px 0 16px 0; 
+            border-left: 4px solid var(--accent);
+            padding-left: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        section {
+            margin-bottom: 40px;
+            break-inside: avoid; /* Print: try not to split sections */
+        }
+
+        /* --- Grid Layouts --- */
+        .grid-pestle {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .grid-swot {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #E5E7EB;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+
+        /* --- Print Styles (The Magic) --- */
+        @media print {
+            body {
+                display: block; /* Remove flex layout */
+                background: white;
+                font-size: 11pt; /* Print optimized font size */
+            }
+
+            .sidebar {
+                display: none !important; /* Hide Sidebar */
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100%;
+            }
+
+            .header-card, .card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                break-inside: avoid; /* Avoid splitting cards across pages */
+            }
+            
+            h2 {
+                margin-top: 20px;
+                page-break-after: avoid;
+            }
+
+            /* Force background colors to print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Layout adjustments for A4 */
+            .grid-pestle { grid-template-columns: repeat(3, 1fr); } /* 3 cols for print to save space? or keep 2 */
+            
+            /* Add page breaks if needed */
+            .page-break { page-break-before: always; }
+        }
+
+        /* --- Demo Controls --- */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        .fab:hover { transform: translateY(-2px); }
+        @media print { .fab { display: none; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="brand">🤖 AI Sales OS</div>
+        <a href="#summary" class="nav-item active">📊 サマリー</a>
+        <a href="#financial" class="nav-item">💰 財務・ビジネス</a>
+        <a href="#market" class="nav-item">🌍 市場環境 (PESTLE)</a>
+        <a href="#strategy" class="nav-item">⚔️ 戦略 (SWOT)</a>
+        <a href="#action" class="nav-item">📞 アクション</a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <div class="header-card" id="summary">
+            <div>
+                <div style="font-size: 12px; color: #6B7280; margin-bottom: 4px;">最終更新: 2024/12/15</div>
+                <h1>株式会社サンプル・テック</h1>
+                <div style="margin-top: 8px;">
+                    <span class="tag">SaaS</span>
+                    <span class="tag">AI/DX</span>
+                    <span class="tag">IPO準備中</span>
+                </div>
+            </div>
+            <div class="score-box">
+                <div style="font-size: 12px;">攻略スコア</div>
+                <div style="font-size: 32px; font-weight: bold;">85</div>
+            </div>
+        </div>
+
+        <section id="market">
+            <h2>外部環境分析 (PESTLE)</h2>
+            <div class="grid-pestle">
+                <div class="card">
+                    <div class="card-title">🏛️ Political (政治)</div>
+                    <div class="card-text">
+                        政府のDX推進助成金（IT導入補助金など）の対象エリア拡大により、中小企業のIT投資意欲が増加傾向。法改正による電子帳簿保存法の厳格化も追い風。
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Economic (経済)</div>
+                    <div class="card-text">
+                        円安によるハードウェアコスト増があるものの、ソフトウェア投資は堅調。特に人手不足解消のための省人化ソリューションへの予算配分が増加。
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">👥 Social (社会)</div>
+                    <div class="card-text">
+                        生産年齢人口の減少により、「採用難」が全業界的な課題。リスキリングや業務自動化（AI導入）への心理的ハードルが低下している。
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">💻 Technological (技術)</div>
+                    <div class="card-text">
+                        生成AI（LLM）の実用化が進み、チャットボットや自動応答システムの精度が飛躍的に向上。API連携エコシステムが重要視される。
+                    </div>
+                </div>
+                 <div class="card">
+                    <div class="card-title">⚖️ Legal (法律)</div>
+                    <div class="card-text">
+                       個人情報保護法の改正や、AI規制に関するEUの動向が国内にも波及する可能性。セキュリティ要件の厳格化が進む。
+                    </div>
+                </div>
+                 <div class="card">
+                    <div class="card-title">🌲 Environmental (環境)</div>
+                    <div class="card-text">
+                        ペーパーレス化、グリーンITへの関心。データセンターの省電力化などが選定基準の一部になりつつある。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy">
+            <h2>戦略分析 (SWOT)</h2>
+            <div class="grid-swot">
+                <div class="card" style="background:#F0FDF4; border-color:#86EFAC;">
+                    <div class="card-title" style="color:#15803D;">💪 Strengths (強み)</div>
+                    <div class="card-text">
+                        ・独自の自然言語処理エンジンによる高い回答精度<br>
+                        ・国内大手金融機関への導入実績による信頼性<br>
+                        ・カスタマーサクセスチームの手厚いサポート体制
+                    </div>
+                </div>
+                <div class="card" style="background:#FEF2F2; border-color:#FECACA;">
+                    <div class="card-title" style="color:#B91C1C;">😿 Weaknesses (弱み)</div>
+                    <div class="card-text">
+                        ・競合他社と比較して初期導入コストが高い<br>
+                        ・UI/UXが若干古く、モバイル対応に遅れ<br>
+                        ・マーケティング部門のリソース不足
+                    </div>
+                </div>
+                <div class="card" style="background:#FFFBEB; border-color:#FDE68A;">
+                    <div class="card-title" style="color:#B45309;">🌟 Opportunities (機会)</div>
+                    <div class="card-text">
+                        ・地方自治体向けのDX入札案件の増加<br>
+                        ・既存顧客の別部署展開（アップセル）の余地<br>
+                        ・他社SaaSとのAPI連携による機能拡張
+                    </div>
+                </div>
+                <div class="card" style="background:#F3F4F6; border-color:#D1D5DB;">
+                    <div class="card-title" style="color:#374151;">⚡ Threats (脅威)</div>
+                    <div class="card-text">
+                        ・海外製ローコードツールの低価格攻勢<br>
+                        ・Google/Microsoftなどプラットフォーマーの機能内製化<br>
+                        ・エンジニア採用競争の激化による人件費高騰
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page break for clear separation if needed content continues... -->
+
+        <section id="action">
+            <h2>アクションプラン</h2>
+            <div class="card">
+                <div class="card-title">📞 アプローチトーク</div>
+                <div class="card-text" style="font-size: 14px;">
+                    「御社の『金融機関導入実績』を拝見し、信頼性を重視されるクライアント様への提案強化において、弊社のセキュリティソリューションが、御社の『モバイル対応の遅れ』という課題を補完しつつ、アップセルに貢献できる可能性が高いと考えご連絡いたしました。」
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PDF BUTTON -->
+    <div class="fab" onclick="window.print()">
+        <span>🖨️ PDFレポート出力</span>
+    </div>
+
+</body>
+</html>
