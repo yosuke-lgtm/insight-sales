@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 現在のアクティブなタブIDを保持
   let currentTabId = null;
   let lastFormDraftLong = '';
+  let lastCompanyName = '';
 
   function getDisplayHost(rawUrl) {
     if (!rawUrl || typeof rawUrl !== 'string') return '';
@@ -313,6 +314,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const resultHtml = document.getElementById('content').innerHTML;
+    const rawCompanyName = (lastCompanyName || '').trim();
+    const safeCompanyName = rawCompanyName
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const pdfTitle = safeCompanyName
+      ? `AI戦略分析レポート_${safeCompanyName}`
+      : 'AI戦略分析レポート';
 
     const robustStyles = `
       :root {
@@ -380,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     printWindow.document.write(`
       <html>
         <head>
-          <title>AI戦略分析レポート</title>
+          <title>${escapeHtml(pdfTitle)}</title>
           <style>${robustStyles}</style>
         </head>
         <body>
@@ -401,6 +410,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const strategy = data.strategy;
     const company = data.company;
     lastFormDraftLong = strategy?.formDraft?.long || '';
+    lastCompanyName = company?.name || '';
     const rt = (v) => renderRichText(v || '-');
     const ri = (v) => renderInlineText(v || '-');
 
@@ -413,8 +423,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div style="font-size:12px; color:#9CA3AF; margin-bottom:10px;">目次</div>
         <a href="#summary" style="display:block; padding:8px; color:#fff; text-decoration:none;">📊 サマリー</a>
         <a href="#financial" style="display:block; padding:8px; color:#fff; text-decoration:none;">💰 財務・ビジネス</a>
+        <a href="#value-chain" style="display:block; padding:8px; color:#fff; text-decoration:none;">🧬 バリューチェーン</a>
         <a href="#tech" style="display:block; padding:8px; color:#fff; text-decoration:none;">🧩 Tech Stack</a>
         <a href="#market" style="display:block; padding:8px; color:#fff; text-decoration:none;">🌍 PESTLE分析</a>
+        <a href="#five-forces" style="display:block; padding:8px; color:#fff; text-decoration:none;">🧱 5F分析</a>
+        <a href="#three-c" style="display:block; padding:8px; color:#fff; text-decoration:none;">🎯 3C分析</a>
+        <a href="#stp" style="display:block; padding:8px; color:#fff; text-decoration:none;">🧭 STP分析</a>
         <a href="#news" style="display:block; padding:8px; color:#fff; text-decoration:none;">📰 ニュース</a>
         <a href="#strategy" style="display:block; padding:8px; color:#fff; text-decoration:none;">⚔️ SWOT分析</a>
         <a href="#action" style="display:block; padding:8px; color:#fff; text-decoration:none;">📞 アクション</a>
@@ -490,6 +504,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </section>
 
+          <!-- Value Chain -->
+          <section id="value-chain">
+            <h2>🧬 バリューチェーン分析</h2>
+            <div class="card">
+              <div class="info-label">KSF（成功要因）</div>
+              ${
+                (strategy.valueChain?.ksf || []).length > 0
+                  ? `<ul style="padding-left:16px; margin:4px 0;" class="text-sm">${(strategy.valueChain.ksf || [])
+                      .map((k) => `<li>${ri(k)}</li>`)
+                      .join('')}</ul>`
+                  : `<div class="info-item">-</div>`
+              }
+            </div>
+            ${
+              (strategy.valueChain?.stages || []).length > 0
+                ? `<div class="grid-2">
+                    ${(strategy.valueChain.stages || []).map((s) => `
+                      <div class="card">
+                        <div class="info-label">${ri(s.name)}</div>
+                        ${
+                          (s.activities || []).length > 0
+                            ? `<ul style="padding-left:16px; margin:4px 0;" class="text-sm">${(s.activities || [])
+                                .map((a) => `<li>${ri(a)}</li>`)
+                                .join('')}</ul>`
+                            : `<div class="info-item">-</div>`
+                        }
+                        <div class="info-item" style="margin-top:8px;">
+                          <span class="bold">意義:</span> ${rt(s.significance)}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>`
+                : `<div class="card"><div class="info-item">-</div></div>`
+            }
+            <div class="card" style="background:#F9FAFB;">
+              <div class="info-label">結論</div>
+              <div class="info-item">${rt(strategy.valueChain?.conclusion)}</div>
+            </div>
+          </section>
+
           <!-- Tech Stack -->
           <section id="tech">
             <h2>🧩 Tech Stack</h2>
@@ -556,6 +610,99 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="info-item" style="background:#F0F9FF; padding:8px; border-radius:4px; margin-top:8px;">
                 <span class="bold">結論:</span> ${rt(strategy.pestle?.conclusion)}
               </div>
+            </div>
+          </section>
+
+          <!-- 2.5 Five Forces -->
+          <section id="five-forces">
+            <h2>🧱 5F分析（業界構造）</h2>
+            <div class="grid-2">
+              <div class="card">
+                <div class="info-label">競合の脅威（Rivalry）</div>
+                <div class="info-item">${rt(strategy.fiveForces?.rivalry)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">新規参入の脅威（New Entrants）</div>
+                <div class="info-item">${rt(strategy.fiveForces?.newEntrants)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">代替品の脅威（Substitutes）</div>
+                <div class="info-item">${rt(strategy.fiveForces?.substitutes)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">供給業者の交渉力（Suppliers）</div>
+                <div class="info-item">${rt(strategy.fiveForces?.suppliers)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">買い手の交渉力（Buyers）</div>
+                <div class="info-item">${rt(strategy.fiveForces?.buyers)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">業界構造の未来予測</div>
+                <div class="info-item">${rt(strategy.fiveForces?.futureOutlook)}</div>
+              </div>
+            </div>
+            <div class="card" style="background:#F9FAFB;">
+              <div class="info-label">結論</div>
+              <div class="info-item">${rt(strategy.fiveForces?.conclusion)}</div>
+            </div>
+          </section>
+
+          <!-- 2.6 3C -->
+          <section id="three-c">
+            <h2>🎯 3C分析</h2>
+            <div class="grid-3">
+              <div class="card">
+                <div class="info-label">Customer（顧客）</div>
+                <div class="info-item">${rt(strategy.threeC?.customer)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">Competitor（競合）</div>
+                <div class="info-item">${rt(strategy.threeC?.competitor)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">Company（自社）</div>
+                <div class="info-item">${rt(strategy.threeC?.company)}</div>
+              </div>
+            </div>
+            <div class="card" style="background:#F9FAFB;">
+              <div class="info-label">結論</div>
+              <div class="info-item">${rt(strategy.threeC?.conclusion)}</div>
+            </div>
+          </section>
+
+          <!-- 2.7 STP -->
+          <section id="stp">
+            <h2>🧭 STP分析</h2>
+            <div class="grid-2">
+              <div class="card">
+                <div class="info-label">Segmentation（市場分割）</div>
+                <div class="info-item">${rt(strategy.stp?.segmentation)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">Targeting（ターゲット）</div>
+                <div class="info-item">${rt(strategy.stp?.targeting)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">現在のポジショニング</div>
+                <div class="info-item">${rt(strategy.stp?.currentPositioning || strategy.stp?.positioning)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">未来変化</div>
+                <div class="info-item">${rt(strategy.stp?.futureChange)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">機会/脅威</div>
+                <div class="info-item">${rt(strategy.stp?.opportunityThreat)}</div>
+              </div>
+              <div class="card">
+                <div class="info-label">描くべき独自ポジショニング</div>
+                <div class="info-item">${rt(strategy.stp?.desiredPositioning)}</div>
+              </div>
+            </div>
+            <div class="card" style="background:#F9FAFB;">
+              <div class="info-label">結論</div>
+              <div class="info-item">${rt(strategy.stp?.conclusion)}</div>
             </div>
           </section>
 

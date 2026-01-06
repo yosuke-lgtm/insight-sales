@@ -239,7 +239,15 @@ JSONのみを返してください。
     pestle: { political: string; economic: string; social: string; technological: string; legal: string; environmental: string; futureOutlook: string; conclusion: string };
     fiveForces: { rivalry: string; newEntrants: string; substitutes: string; suppliers: string; buyers: string; futureOutlook: string; conclusion: string };
     threeC: { customer: string; competitor: string; company: string; conclusion: string };
-    stp: { segmentation: string; targeting: string; positioning: string; conclusion: string };
+    stp: {
+      segmentation: string;
+      targeting: string;
+      currentPositioning: string;
+      futureChange: string;
+      opportunityThreat: string;
+      desiredPositioning: string;
+      conclusion: string;
+    };
     marketing: { valueProposition: string; ksf: string[]; conclusion: string };
     businessModel: { costStructure: string; unitEconomics: string; economicMoat: string; conclusion: string };
     financialHealth: { 
@@ -277,6 +285,8 @@ JSONのみを返してください。
 - 分析本文の中で重要なキーワード/結論/数値は **太字**（Markdownの **...**）で強調してください。
 - 「情報が見つからない/不明/未確認」は **弱み（Weaknesses）に含めない** でください。そうした項目は swot.unknowns に入れてください。
 - techStackAnalysis.hypothesis は **空欄にせず必ず** 記述してください（情報が不足する場合でも、推定根拠と仮説を簡潔に書く）。
+- STPの Positioning は「誰もが狙う一般的な位置」ではなく、**バリューチェーン分析と7S分析で見える独自性**を軸に、現在と描くべき姿を明確に分けて記述してください。
+- 「描くべき独自ポジショニング」は、**ニュース/PESTLE/5Fの未来変化**を前提に、「未来変化 → 機会/脅威 → 取るべきポジション」の因果で記述してください。
 
 ## 対象企業情報
 - 企業名: ${company.name}
@@ -452,7 +462,10 @@ ${additionalUrlData ? `
   "stp": {
     "segmentation": "市場をどのような軸で分割しているか（業種別/規模別/地域別/課題別など）。具体的な軸と、その理由を記述",
     "targeting": "どのセグメントを狙っているか。具体的なターゲット像（例：従業員50-300名の製造業、ITリテラシーが低い経営者層など）を記述。『中小企業』のような曖昧な表現は禁止",
-    "positioning": "競合と比較してどのような立ち位置を取っているか。価格帯、専門性、サービス範囲などを具体的に記述",
+    "currentPositioning": "現在のポジショニング（競合と比較した現在の立ち位置）。価格帯、専門性、提供範囲、実績などを具体的に記述",
+    "futureChange": "未来変化（ニュース/PESTLE/5Fから読み取れる、3-5年後の変化仮説）",
+    "opportunityThreat": "未来変化から生じる機会/脅威（誰に、どんな変化が起き、何が機会/脅威になるか）",
+    "desiredPositioning": "描くべき独自ポジショニング（未来変化→機会/脅威を前提に、バリューチェーン/7Sの強みを軸に差別化ポイントと顧客価値を明示）",
     "conclusion": "STP戦略の一貫性と市場適合性に関する評価"
   },
   "threeC": {
@@ -709,7 +722,15 @@ JSONのみを返してください。その他チャットなどの前置きは�
       pestle: { political: '-', economic: '-', social: '-', technological: '-', legal: '-', environmental: '-', futureOutlook: '-', conclusion: '-' },
       fiveForces: { rivalry: '-', newEntrants: '-', substitutes: '-', suppliers: '-', buyers: '-', futureOutlook: '-', conclusion: '-' },
       threeC: { customer: '-', competitor: '-', company: '-', conclusion: '-' },
-      stp: { segmentation: '-', targeting: '-', positioning: '-', conclusion: '-' },
+      stp: {
+        segmentation: '-',
+        targeting: '-',
+        currentPositioning: '-',
+        futureChange: '-',
+        opportunityThreat: '-',
+        desiredPositioning: '-',
+        conclusion: '-'
+      },
       marketing: { valueProposition: '-', ksf: [], conclusion: '-' },
       businessModel: { costStructure: '-', unitEconomics: '-', economicMoat: '-', conclusion: '-' },
       financialHealth: { status: '-', concern: '-', investmentCapacity: '-', budgetCycle: '-', decisionSpeed: '-', conclusion: '-' },

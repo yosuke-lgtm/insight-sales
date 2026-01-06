@@ -1554,7 +1554,7 @@ function extractInfo(body) {
     'メールアドレス', 'E-mail', 'Email', 'MAIL', 'mail', 'Eメール',
     '法人名', '会社名', '貴社名', '企業名', 'Company', '社名',
     '業種', '業界', 'Industry',
-    '役職', '役職1', '役職 1', '役職2', '役職 2', '職位', '肩書', 'Position', 'Title',
+    '役職', '役職1', '役職 1', '役職１', '役職2', '役職 2', '役職２', '職位', '肩書', 'Position', 'Title',
     '従業員数', '社員数', '人数',
     '売上', '売上高', '年商',
     'TEL', '電話番号', '電話', '携帯電話', '携帯', 'Phone', 'Tel', 'tel',
@@ -1569,7 +1569,9 @@ function extractInfo(body) {
     label
       .toString()
       .replace(/[：:]/g, '')
+      .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
       .replace(/\s+/g, '')
+      .replace(/　/g, '')
       .toLowerCase()
   );
 
@@ -1598,14 +1600,16 @@ function extractInfo(body) {
 
   const labelValueMap = {};
   normalizedBody.split('\n').forEach(line => {
-    const match = line.match(/^\s*([^:：]+?)\s*[:：]\s*(.+)$/);
-    if (!match) return;
-    const rawKey = match[1].trim();
-    const rawValue = match[2];
-    if (!rawKey || !rawValue) return;
-    const normalizedKey = normalizeLabel(rawKey);
-    if (!labelValueMap[normalizedKey]) {
-      labelValueMap[normalizedKey] = cleanValue(rawValue);
+    const pairRegex = /([^:：\n]+?)\s*[:：]\s*([^:：\n]+?)(?=(?:\s+[^:：\n]+?\s*[:：])|$)/g;
+    let match;
+    while ((match = pairRegex.exec(line)) !== null) {
+      const rawKey = match[1].trim();
+      const rawValue = match[2];
+      if (!rawKey || !rawValue) continue;
+      const normalizedKey = normalizeLabel(rawKey);
+      if (!labelValueMap[normalizedKey]) {
+        labelValueMap[normalizedKey] = cleanValue(rawValue);
+      }
     }
   });
 
@@ -1642,8 +1646,8 @@ function extractInfo(body) {
     return value.includes('テスト') ? '' : value;
   };
 
-  const role1 = getValueMultiple(['役職1', '役職 1']);
-  const role2 = getValueMultiple(['役職2', '役職 2']);
+  const role1 = getValueMultiple(['役職1', '役職 1', '役職１']);
+  const role2 = getValueMultiple(['役職2', '役職 2', '役職２']);
   const combinedRole = [role1, role2].filter(Boolean).join(' / ');
 
   const result = {
