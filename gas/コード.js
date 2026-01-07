@@ -898,6 +898,8 @@ function extractDocumentType(subject, body) {
     return `${service}（${type}）`;
   } else if (service) {
     return `${service}（その他）`;
+  } else if (type === '資料DL') {
+    return 'ホワイトペーパー（資料DL）';
   } else if (type) {
     return type;
   } else {
@@ -1764,6 +1766,13 @@ function sendToChat(data) {
       ]
     }
   ];
+
+  cardSections[cardSections.length - 1].widgets.push({
+    keyValue: {
+      topLabel: '通知の解消',
+      content: '営業用シートの「対応者」を(園部/室野井/村松/石黒)のいずれかに入力、または「対応ステータス」を入力'
+    }
+  });
 
   const mentionLine = assigneeMentions.length ? `TO: ${assigneeMentions.join(' ')}` : '';
   const message = {
