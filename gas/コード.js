@@ -916,10 +916,18 @@ function classifyNeedLevel(subject) {
   if (!subject) return 'ニーズ低';
   const hasInquiry = subject.includes('お問い合わせ') || subject.includes('問い合わせ') || subject.includes('問合せ');
   if (hasInquiry) return 'ニーズ高';
-  const hasZWp = subject.includes('Z-WP');
-  const highKeywords = ['ポジショニングメディア', 'ブランディングメディア', 'キャククル', '掲載'];
+  const highKeywords = [
+    'ポジショニングメディア',
+    '採用ポジショニングメディア',
+    'ブランディングメディア',
+    '採用ブランディングメディア',
+    'キャククル',
+    '掲載',
+    '広告掲載',
+    'リード獲得'
+  ];
   const hasHigh = highKeywords.some(k => subject.includes(k));
-  return hasZWp && hasHigh ? 'ニーズ高' : 'ニーズ低';
+  return hasHigh ? 'ニーズ高' : 'ニーズ低';
 }
 
 /**
@@ -1059,6 +1067,7 @@ function appendToSalesSheet_(sheet, headers, payload) {
   setVal('対応者', payload.assignee);
 
   sheet.appendRow(row);
+  return sheet.getLastRow();
 }
 
 function buildRowIndexByMessageId_(sheet, messageIdIdx) {
@@ -1370,7 +1379,27 @@ function processEmails(query) {
       // ただし、すでに処理済みラベルがついているものはスキップしてもよい
       // 今回はMessage-IDで重複チェックしているのでラベルチェックは補助的
 
-      const body = message.getPlainBody();
+      let body = message.getPlainBody();
+      if (!body || body.trim() === '') {
+        const htmlBody = message.getBody();
+        body = htmlBody
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<head[\s\S]*?<\/head>/gi, '')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n')
+          .replace(/<\/div>/gi, '\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/gi, ' ')
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .replace(/&quot;/gi, '"')
+          .replace(/\{pagetitle\}/gi, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+        console.log('Plain body was empty; fallback to HTML body.');
+      }
       const subject = message.getSubject();
       const date = message.getDate();
       const from = message.getFrom();
@@ -1466,9 +1495,11 @@ function processEmails(query) {
 
       // 1.1 営業用シートへ同時転記
       const salesSheet = getSalesSheet();
+      let salesRowNum = null;
+      let salesSheetId = null;
       if (salesSheet) {
         const salesHeaders = ensureSalesHeaders_(salesSheet);
-        appendToSalesSheet_(
+        salesRowNum = appendToSalesSheet_(
           salesSheet,
           salesHeaders,
           {
@@ -1491,6 +1522,7 @@ function processEmails(query) {
             assignee: assignee
           }
         );
+        salesSheetId = salesSheet.getSheetId();
       }
 
         // 2. Backendへ送信
@@ -1506,7 +1538,9 @@ function processEmails(query) {
             ...extracted,
             sheetUrl: sheet.getParent().getUrl(),
             sheetId: sheet.getSheetId(),
-            rowNum: sheet.getLastRow()
+            rowNum: sheet.getLastRow(),
+            salesSheetId: salesSheetId,
+            salesRowNum: salesRowNum
           };
           
           sendToBackend(payload);
@@ -1567,6 +1601,13 @@ function extractInfo(body) {
     '詳しい内容（任意）', '詳しい内容'
   ];
 
+  const escapeForRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const labelAlternation = labelTokens
+    .slice()
+    .sort((a, b) => b.length - a.length)
+    .map(escapeForRegex)
+    .join('|');
+
   const normalizeLabel = (label) => (
     label
       .toString()
@@ -1623,6 +1664,13 @@ function extractInfo(body) {
         return labelValueMap[normalizedKey];
       }
       const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regexWhole = new RegExp(`${escapedKey}\\s*[:：]\\s*([\\s\\S]*?)(?=\\s*(?:${labelAlternation})\\s*[:：]|$)`, 'i');
+      const matchWhole = normalizedBody.match(regexWhole);
+      if (matchWhole && matchWhole[1].trim()) {
+        const cleanedWhole = cleanValue(matchWhole[1]);
+        console.log(`Matched (Whole) ${key}: ${cleanedWhole}`);
+        return cleanedWhole;
+      }
 
       const regexInline = new RegExp(`${escapedKey}\\s*[:：]?\\s*(.+?)(?:\\n|$)`, 'im');
       const matchInline = normalizedBody.match(regexInline);
@@ -1768,9 +1816,8 @@ function sendToChat(data) {
   ];
 
   cardSections[cardSections.length - 1].widgets.push({
-    keyValue: {
-      topLabel: '通知の解消',
-      content: '営業用シートの「対応者」を(園部/室野井/村松/石黒)のいずれかに入力、または「対応ステータス」を入力'
+    textParagraph: {
+      text: '<b>通知の解消方法</b><br>営業用シートの「対応者」を(園部/室野井/村松/石黒)のいずれかに入力、または「対応ステータス」を入力'
     }
   });
 
@@ -1791,8 +1838,10 @@ function sendToChat(data) {
 
   // ボタンは最後のセクションに追加
   const sheetUrl = data.sheetUrl || SpreadsheetApp.getActiveSpreadsheet().getUrl();
-  const rowLink = (data.sheetId && data.rowNum)
-    ? `${sheetUrl}#gid=${data.sheetId}&range=A${data.rowNum}`
+  const linkSheetId = data.salesSheetId || data.sheetId;
+  const linkRowNum = data.salesRowNum || data.rowNum;
+  const rowLink = (linkSheetId && linkRowNum)
+    ? `${sheetUrl}#gid=${linkSheetId}&range=A${linkRowNum}`
     : sheetUrl;
 
   cardSections[cardSections.length - 1].widgets.push({
